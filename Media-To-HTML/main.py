@@ -16,19 +16,26 @@ parser.add_argument('--directory','-d', help="Directory to store html file", def
 
 args = vars(parser.parse_args())
 
+#Base html
 html = BeautifulSoup("<!DOCTYPE html><html><head></head><body></body></html>", 'html.parser')
 css = html.new_tag('style')
+
+#Read in css from .css file
 with open("style.css", 'r') as f:
     css.string = f.read()
+
 html.find('head').append(css)
+
 body = html.find("body")
+
+#Find all images in provided directory
 imgs = []
 for i in ('.png', '.jpg', '.gif'):
     imgs.extend(glob.glob(args['images']+'/*'+i))
 
 random.shuffle(imgs)
 
-
+#Basic img gallery markup
 row = html.new_tag('div')
 row['class'] = 'row'
 
@@ -47,31 +54,40 @@ cols = [col1,col2,col3,col4]
 
 def bulkEncode(section, id):
     temptxt = str(id) +'.txt'
+    #Iterate through each img path
     for i in section:
         with open(i, 'rb') as img:
+            #Extract file type from name
             ext = pathlib.Path(i).suffix[1::]
             string = ""
+
+            #Write bytes to txt (find better solution)
             with open(temptxt, 'wb') as t:
                 t.write(base64.b64encode(img.read()))
+            #Read txt as string
             with open(temptxt, 'r') as t:
                 string = t.read()
             img = html.new_tag('img')
             img['src'] = 'data:image/'+ext+';base64,'+string
             cols[id].append(img)
+    #Delete temporary txt file
     os.remove(temptxt)
     print("Col " + str(id) + " completed")
 
 def threaded(images):
+    #Create threads
     t1 = threading.Thread(target=bulkEncode, args=(images[0::4],0))
     t2 = threading.Thread(target=bulkEncode, args=(images[1::4],1))
     t3 = threading.Thread(target=bulkEncode, args=(images[2::4],2))
     t4 = threading.Thread(target=bulkEncode, args=(images[3::4],3))
 
+    #Start thread execution
     t1.start()
     t2.start()
     t3.start()
     t4.start()
 
+    #Wait for threads to finish
     t1.join()
     t2.join()
     t3.join()
@@ -122,6 +138,7 @@ row.append(col4)
 
 body.append(row)
 
+print("Creating HTML File")
 with open("test.html", 'w') as f:
     f.write(str(html.prettify()))
 
