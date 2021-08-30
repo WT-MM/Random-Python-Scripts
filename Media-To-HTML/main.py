@@ -7,7 +7,7 @@ import os
 import random
 import threading
 import time
-
+from retrieve import Retrieve
 
 parser = argparse.ArgumentParser()
 
@@ -30,11 +30,18 @@ html.find('head').append(css)
 body = html.find("body")
 
 #Find all images in provided directory
+'''
 imgs = []
 for i in ('.png', '.jpg', '.gif'):
     imgs.extend(glob.glob(args['images']+'/*'+i))
 
 random.shuffle(imgs)
+'''
+imgRetrieval = Retrieve(args['images'],rootLevel=False)
+
+imgs = imgRetrieval.getImgs()
+print(imgs)
+
 
 #Basic img gallery markup
 row = html.new_tag('div')
