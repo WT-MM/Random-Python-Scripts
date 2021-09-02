@@ -39,7 +39,7 @@ random.shuffle(imgs)
 '''
 imgRetrieval = Retrieve(args['images'],rootLevel=False)
 
-imgs = imgRetrieval.getImgs()
+imgs = imgRetrieval.findImgs()
 print(imgs)
 
 
