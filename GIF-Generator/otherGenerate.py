@@ -2,21 +2,9 @@ import cv2
 import argparse
 import imageio
 
-from PIL import Image
 
 
-def make_gif(images, path, duration):
-    frames = [Image.fromarray(image) for image in images]
-    frame_one = frames[0]
-    frame_one.save(path, format="GIF", append_images=frames,
-               save_all=True, loop=0)
-    
-def make_mp4(images, path, duration):
-    frames = [Image.fromarray(image) for image in images]
-    frame_one = frames[0]
-    frame_one.save(path, format="MPV4", append_images=frames,
-               save_all=True, loop=0)
-    
+
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and
     # grab the image size
@@ -86,8 +74,7 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             frame_rgb = image_resize(frame_rgb, width=video_width)
             #resized = cv2.resize(frame, (video_width, video_height), interpolation = cv2.INTER_AREA)
             gif_frames.append(frame_rgb)
-        make_gif(gif_frames, f'../output/output_{i+1}.gif', duration/len(gif_frames))
-        make_mp4(gif_frames, f'../output/output_{i+1}.mp4', duration/len(gif_frames))
+        imageio.mimsave(f'../output/output_{i+1}.gif', gif_frames, duration=duration/len(gif_frames))
 
     # Release the video and GIF writers
     video.release()
