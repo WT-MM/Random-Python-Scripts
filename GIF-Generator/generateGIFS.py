@@ -1,22 +1,15 @@
+import os
 import cv2
 import argparse
 import imageio
 
+from processing import *
+
 from PIL import Image
 
 
-def make_gif(images, path, duration):
-    frames = [Image.fromarray(image) for image in images]
-    frame_one = frames[0]
-    frame_one.save(path, format="GIF", append_images=frames,
-               save_all=True, loop=0)
-    
-def make_mp4(images, path, duration):
-    frames = [Image.fromarray(image) for image in images]
-    frame_one = frames[0]
-    frame_one.save(path, format="MPV4", append_images=frames,
-               save_all=True, loop=0)
-    
+
+
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # initialize the dimensions of the image to be resized and
     # grab the image size
@@ -48,7 +41,7 @@ def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     # return the resized image
     return resized
     
-def create_sequential_videos(video_file, num_videos, duration, skipped_frames, video_width, video_height):
+def create_sequential_videos(video_file, num_videos, duration, skipped_frames, video_width, video_height, dither_depth):
     print(f'Creating {num_videos} GIFs from {video_file}...')
     
     # Open the video file
@@ -82,12 +75,40 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             ret, frame = video.read()
             if(j % skipped_frames != 0):
                 continue
+
+            pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+            #split into color channels
+            r, g, b = pil_image.split()
+
+            r = r.convert("L")
+            g = g.convert("L")
+            b = b.convert("L")
+
+            # Apply dithering to each channel
+            r_quantized = r.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
+            g_quantized = g.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
+            b_quantized = b.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
+
+            r_quantized = r_quantized.convert("L")
+            g_quantized = g_quantized.convert("L")
+            b_quantized = b_quantized.convert("L")
+
+            quantizedImage = Image.merge('RGB', (r_quantized, g_quantized, b_quantized))
+            np_image = np.array(quantizedImage)
+            # Apply color quantization to reduce the number of colors
+            #quantized = pil_image.quantize(colors=dither_depth)
+
+            # Apply dithering using Pillow's quantize function
+            #dithered = quantized.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
+
+            # Convert the Pillow image back to a numpy array
+            #np_image = np.array(dithered)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_rgb = image_resize(frame_rgb, width=video_width)
+            frame_rgb = image_resize(np_image, width=video_width)
             #resized = cv2.resize(frame, (video_width, video_height), interpolation = cv2.INTER_AREA)
             gif_frames.append(frame_rgb)
-        make_gif(gif_frames, f'../output/output_{i+1}.gif', duration/len(gif_frames))
-        make_mp4(gif_frames, f'../output/output_{i+1}.mp4', duration/len(gif_frames))
+        imageio.mimsave(f'../output/output_{i+1}.gif', gif_frames, duration=duration/len(gif_frames))
 
     # Release the video and GIF writers
     video.release()
@@ -99,11 +120,19 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract sequential frames from a video and create multiple GIFs.')
     parser.add_argument('input', type=str, help='path to the input video file')
     parser.add_argument('-n', '--num', type=int, default=8, help='number of output GIFs')
-    parser.add_argument('-d', '--duration', type=int, default=5, help='duration of each GIF in seconds')
+    parser.add_argument('-d', '--duration', type=int, default=8, help='duration of each GIF in seconds')
     parser.add_argument('-s', '--skip', type=int, default=5, help='number of frames to skip during each GIF')
     parser.add_argument('-x', '--width', type=int, default=640, help='width of the output GIFs')
     parser.add_argument('-y', '--height', type=int, default=480, help='height of the output GIFs')
+    parser.add_argument('-p', '--ditherdepth', type=int, default=4, help='number of colors to quantize to')
     args = parser.parse_args()
 
+        # Check if the directory exists
+    if not os.path.exists('../output'):
+        print("Output directory does not exist.")
+        # Create the directory
+        os.mkdir('../output')
+        print("Output directory has been created.")
+
     # Call the function with the provided command line arguments
-    create_sequential_videos(args.input, args.num, args.duration, args.skip, args.width, args.height)
+    create_sequential_videos(args.input, args.num, args.duration, args.skip, args.width, args.height, args.ditherdepth)
