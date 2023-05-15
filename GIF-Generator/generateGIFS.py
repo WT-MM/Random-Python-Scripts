@@ -2,10 +2,10 @@ import os
 import cv2
 import argparse
 import imageio
-
-from processing import *
+import imagequant
 
 from PIL import Image
+import numpy as np
 
 
 
@@ -76,6 +76,8 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             if(j % skipped_frames != 0):
                 continue
 
+            frame = image_resize(frame, width=video_width)
+
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
             #split into color channels
@@ -86,9 +88,16 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             b = b.convert("L")
 
             # Apply dithering to each channel
+            '''
             r_quantized = r.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
             g_quantized = g.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
             b_quantized = b.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
+            '''
+            
+            r_quantized = imagequant.quantize_pil_image(r, dithering_level=1.0, max_colors=dither_depth)
+            g_quantized = imagequant.quantize_pil_image(g, dithering_level=1.0, max_colors=dither_depth)
+            b_quantized = imagequant.quantize_pil_image(b, dithering_level=1.0, max_colors=dither_depth)
+
 
             r_quantized = r_quantized.convert("L")
             g_quantized = g_quantized.convert("L")
@@ -105,10 +114,11 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             # Convert the Pillow image back to a numpy array
             #np_image = np.array(dithered)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_rgb = image_resize(np_image, width=video_width)
+            #frame_rgb = image_resize(np_image, width=video_width)
+
             #resized = cv2.resize(frame, (video_width, video_height), interpolation = cv2.INTER_AREA)
             gif_frames.append(frame_rgb)
-        imageio.mimsave(f'../output/output_{i+1}.gif', gif_frames, duration=duration/len(gif_frames))
+        imageio.mimsave(f'../output/output_{i+1}.gif', gif_frames, duration=duration/len(gif_frames), loop=0)
 
     # Release the video and GIF writers
     video.release()
@@ -122,9 +132,9 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--num', type=int, default=8, help='number of output GIFs')
     parser.add_argument('-d', '--duration', type=int, default=8, help='duration of each GIF in seconds')
     parser.add_argument('-s', '--skip', type=int, default=5, help='number of frames to skip during each GIF')
-    parser.add_argument('-x', '--width', type=int, default=640, help='width of the output GIFs')
-    parser.add_argument('-y', '--height', type=int, default=480, help='height of the output GIFs')
-    parser.add_argument('-p', '--ditherdepth', type=int, default=4, help='number of colors to quantize to')
+    parser.add_argument('-x', '--width', type=int, default=470, help='width of the output GIFs')
+    parser.add_argument('-y', '--height', type=int, default=360, help='height of the output GIFs')
+    parser.add_argument('-p', '--ditherdepth', type=int, default=5, help='number of colors to quantize to')
     args = parser.parse_args()
 
         # Check if the directory exists
