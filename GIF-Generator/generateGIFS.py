@@ -123,7 +123,7 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             gif_frames.append(Image.fromarray(frame_rgb))
         img1 = gif_frames.pop(0)
         #Compress_level - 9 is max, 1 is min
-        img1.save(f"../output/output_{i+1}.gif", save_all=True, append_images=gif_frames, duration=duration/len(gif_frames), loop=0, optimize=True, compress_level=1)
+        img1.save(f"../output/output_{i+1}.gif", save_all=True, append_images=gif_frames, duration=duration/len(gif_frames), loop=0, optimize=True)
 
     # Release the video and GIF writers
     video.release()
