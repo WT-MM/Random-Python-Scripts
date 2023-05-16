@@ -2,7 +2,6 @@ import os
 import cv2
 import argparse
 import imageio
-import imagequant
 
 from PIL import Image
 import numpy as np
@@ -93,6 +92,8 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             g_quantized = g.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
             b_quantized = b.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
             '''
+
+            '''
             
             r_quantized = imagequant.quantize_pil_image(r, dithering_level=1.0, max_colors=dither_depth)
             g_quantized = imagequant.quantize_pil_image(g, dithering_level=1.0, max_colors=dither_depth)
@@ -105,6 +106,8 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
 
             quantizedImage = Image.merge('RGB', (r_quantized, g_quantized, b_quantized))
             np_image = np.array(quantizedImage)
+            
+            '''
             # Apply color quantization to reduce the number of colors
             #quantized = pil_image.quantize(colors=dither_depth)
 
@@ -117,8 +120,10 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             #frame_rgb = image_resize(np_image, width=video_width)
 
             #resized = cv2.resize(frame, (video_width, video_height), interpolation = cv2.INTER_AREA)
-            gif_frames.append(frame_rgb)
-        imageio.mimsave(f'../output/output_{i+1}.gif', gif_frames, duration=duration/len(gif_frames), loop=0)
+            gif_frames.append(Image.fromarray(frame_rgb))
+        img1 = gif_frames.pop(0)
+        #Compress_level - 9 is max, 1 is min
+        img1.save(f"../output/output_{i+1}.gif", save_all=True, append_images=gif_frames, duration=duration/len(gif_frames), loop=0, optimize=True, compress_level=1)
 
     # Release the video and GIF writers
     video.release()
