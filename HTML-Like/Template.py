@@ -1,8 +1,49 @@
 from enum import Enum
+import re
 
 class FormatType(Enum):
     HTML = "html"
     BBCODE = "bbcode"
+
+class Parser:
+    def __init__(self, format_type=FormatType.HTML):
+        self.format_type = format_type
+        self.stack = []
+        self.root = None
+        self.current_node = None
+
+        if(format_type == FormatType.HTML):
+            self.open = "<"
+            self.close = ">"
+        elif(format_type == FormatType.BBCODE):
+            self.open = "["
+            self.close = "]"
+
+        print(format_type)
+        if(format_type == FormatType.HTML):
+            print("S")
+            self.tokenRegex = r'<[^>]*>'
+        elif(format_type == FormatType.BBCODE):
+            self.tokenRegex = r'\[([^\]]+)\]'
+
+        print(self.tokenRegex)
+
+    def parse(self, string):
+        tokens = self.tokenize(string)
+        print(tokens)
+
+    def tokenize(self, string):
+        tokens = re.split(self.tokenRegex, string)
+
+        tags = re.findall(self.tokenRegex, string)
+
+        merged = []
+        for i in range(len(tokens)):
+            merged.append(tokens[i])
+            if i < len(tags):
+                merged.append(tags[i])
+
+        return merged
 
 class Template:
     def __init__(self, format_type=FormatType.HTML):
@@ -11,9 +52,13 @@ class Template:
         self.format_type = format_type
     
     @classmethod
-    def from_string(string):
+    def from_string(string, format_type=FormatType.HTML):
         #Figure out how to parse strings into Items
-        template = Template()
+        template = Template(format_type=format_type)
+
+        HTMLParser = Parser(format_type=format_type)
+        HTMLParser.parse(string)
+
         template.template = string
         
         return template
