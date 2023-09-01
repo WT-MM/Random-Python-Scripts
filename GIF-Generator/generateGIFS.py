@@ -59,6 +59,7 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
 
     # Loop through each GIF and extract the desired frames
     for i in range(num_videos):
+
         # Calculate the starting and ending frame indices for this GIF
         start_frame = i * (num_frames_per_video + frames_between_gifs)
         end_frame = start_frame + num_frames_per_video
@@ -77,6 +78,7 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
 
             frame = image_resize(frame, width=video_width)
 
+            '''
             pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
             #split into color channels
@@ -85,7 +87,7 @@ def create_sequential_videos(video_file, num_videos, duration, skipped_frames, v
             r = r.convert("L")
             g = g.convert("L")
             b = b.convert("L")
-
+            '''
             # Apply dithering to each channel
             '''
             r_quantized = r.quantize(colors=dither_depth, method=Image.FLOYDSTEINBERG)
@@ -135,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract sequential frames from a video and create multiple GIFs.')
     parser.add_argument('input', type=str, help='path to the input video file')
     parser.add_argument('-n', '--num', type=int, default=8, help='number of output GIFs')
-    parser.add_argument('-d', '--duration', type=int, default=8, help='duration of each GIF in seconds')
+    parser.add_argument('-d', '--duration', type=float, default=8, help='duration of each GIF in seconds')
     parser.add_argument('-s', '--skip', type=int, default=5, help='number of frames to skip during each GIF')
     parser.add_argument('-x', '--width', type=int, default=470, help='width of the output GIFs')
     parser.add_argument('-y', '--height', type=int, default=360, help='height of the output GIFs')
