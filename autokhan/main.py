@@ -1,10 +1,10 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # Initialize the WebDriver
 options = Options()
@@ -25,21 +25,25 @@ def navigate_to_exercise(url):
     # Add any additional logic needed for interaction with the exercise
 
 def clickTextandCheck(letter):
-    answer = driver.find_element(By.XPATH, f"//div[contains(text(), '{letter}')]/ancestor::li//button")
-    answer.click()
-    check = driver.find_element(By.CSS_SELECTOR, 'button[data-test-id="exercise-check-answer"]')
-    check.click()
+    WebDriverWait(driver, 0.2).until(EC.element_to_be_clickable((By.XPATH, f"//div[contains(text(), '{letter}')]/ancestor::li//button"))).click()
+    #answer = driver.find_element(By.XPATH, f"//div[contains(text(), '{letter}')]/ancestor::li//button")
+    #answer.click()
+    WebDriverWait(driver, 0.2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-test-id="exercise-check-answer"]'))).click()
+    #check = driver.find_element(By.CSS_SELECTOR, 'button[data-test-id="exercise-check-answer"]')
+    #check.click()
     #time.sleep(0.5)
     try:
-        nextQuestion = driver.find_element(By.CSS_SELECTOR, 'button[data-test-id="exercise-next-question"]')
-        nextQuestion.click()
+        WebDriverWait(driver, 0.5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-test-id="exercise-next-question"]'))).click()
+        #nextQuestion = driver.find_element(By.CSS_SELECTOR, 'button[data-test-id="exercise-next-question"]')
+        #nextQuestion.click()
         return True
     except:
         return False
     
 def clickLetsGo():
-    LetsGo = driver.find_element(By.XPATH, "//button[.//span[text()='Let’s go']]")
-    LetsGo.click()
+    WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.XPATH, "//button[.//span[text()='Let’s go']]"))).click()
+    #LetsGo = driver.find_element(By.XPATH, "//button[.//span[text()='Let’s go']]")
+    #LetsGo.click()
 
 
 def run_exercise():
@@ -49,12 +53,13 @@ def run_exercise():
         pass
     #time.sleep(2)
     while True:
-        for letter in ["A", "B", "C"]:
+        for letter in ["A", "B"]:
             if(clickTextandCheck(letter)):
                 break
         try:
-            try_again_button = driver.find_element(By.XPATH, "//button[.//span[contains(text(), 'Try again')]]")
-            try_again_button.click()
+            WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//button[.//span[contains(text(), 'Try again')]]"))).click()
+            #try_again_button = driver.find_element(By.XPATH, "//button[.//span[contains(text(), 'Try again')]]")
+            #try_again_button.click()
             #time.sleep(1)
             clickLetsGo()
             #time.sleep(1)
@@ -74,7 +79,7 @@ driver.get("https://www.khanacademy.org/login")
 input("Please login to Khan Academy and press Enter to continue...")
 # Navigate to the specific exercise
 
-driver.implicitly_wait(10)
+#driver.implicitly_wait(10)
 navigate_to_exercise(specific_exercise_url)
 #time.sleep(5)
 run_exercise()
