@@ -3,3 +3,4 @@ output/
 settings/
 env/
 __pycache__/
+autokhan/creds.py
