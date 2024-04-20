@@ -54,6 +54,8 @@ def run_exercise():
 
 
 specific_exercise_url = "https://www.khanacademy.org/humanities/grammar/punctuation-the-colon-semicolon-and-more/introduction-to-semicolons/e/introduction-to-semicolons"
+#specific_exercise_url = "https://www.khanacademy.org/humanities/grammar/punctuation-the-colon-semicolon-and-more/introduction-to-semicolons/e/using-semicolons-and-commas"
+
 
 #Await user login
 driver.get("https://www.khanacademy.org/login")
